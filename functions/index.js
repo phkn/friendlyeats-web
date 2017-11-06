@@ -49,13 +49,50 @@ exports.copyreviewstobigquery = functions.firestore
     // e.g. {'name': 'Marie', 'age': 66}
     var ratingDocSnap = event.data.data();
 
-    console.log('Got a rating update!  ', ratingDocSnap);
-
-    return table.insert({
+    // insert into a simple table
+    var bqrow = table.insert({
       rating: ratingDocSnap.rating,
       text: ratingDocSnap.text,
       timestamp: ratingDocSnap.timestamp,
       userId: ratingDocSnap.userId,
       userName: ratingDocSnap.userName
     });
+
+   	// insert into a flattened table using results of parent restaurant.
+   	// as it happens, this lives at (root-ward) path:  DocumentReference ^ CollectionReference ^ DocumentReference ...
+
+/*
+    console.log('Raw event: ', event);
+    console.log('Raw event.data: ', event.data);
+    console.log('Raw event.data.ref: ', event.data.ref);
+    console.log('Raw event.data.ref.parent: ', event.data.ref.parent);
+    console.log('Raw event.data.ref.parent.parent: ', event.data.ref.parent.parent);
+	// This gives back "...get():  Promise { <pending> }" so yeah
+    console.log('Raw event.data.ref.parent.parent.get(): ', event.data.ref.parent.parent.get());
+*/
+
+	const supertable = dataset.table('restaurant_ratings');
+
+    let getParentRestDoc = event.data.ref.parent.parent.get();
+    getParentRestDoc.then(function(parentRestDocResult) {
+
+    	var parentRestDocSnap = parentRestDocResult.data();
+
+    	console.log('Rating data: ', ratingDocSnap);
+    	console.log('Restaurant data: ', parentRestDocSnap);
+
+    	return supertable.insert({
+	      restaurant_city: parentRestDocSnap.city,
+	      restaurant_name: parentRestDocSnap.name,
+	      restaurant_category: parentRestDocSnap.category,
+	      restaurant_price: parentRestDocSnap.price,
+	      rating: ratingDocSnap.rating,
+    	  text: ratingDocSnap.text,
+	      timestamp: ratingDocSnap.timestamp,
+	      userId: ratingDocSnap.userId,
+	      userName: ratingDocSnap.userName
+	    });
+    });
+
+    return bqrow;
 });
