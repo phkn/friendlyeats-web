@@ -21,15 +21,41 @@ const bigquery = require('@google-cloud/bigquery')();
 /**
  * Writes all logs from the Realtime Database into bigquery.
  */
+
+/**
 exports.addtobigquery = functions.database.ref('/logs/{logid}').onWrite(event => {
   // TODO: Make sure you set the `bigquery.datasetName` Google Cloud environment variable.
   const dataset = bigquery.dataset(functions.config().bigquery.datasetname);
   // TODO: Make sure you set the `bigquery.tableName` Google Cloud environment variable.
-  const table = dataset.table(functions.config().bigquery.tablename);
+  const table = dataset.table('logs');
 
   return table.insert({
     ID: event.data.key,
     MESSAGE: event.data.val().message,
     NUMBER: event.data.val().number
   });
+});
+**/
+
+exports.copyreviewstobigquery = functions.firestore
+  .document('restaurants/{restaurantid}/ratings/{ratingid}')
+  .onCreate(event => {
+
+    const dataset = bigquery.dataset(functions.config().bigquery.datasetname);
+    // TODO: Make sure you set the `bigquery.tableName` Google Cloud environment variable.
+    const table = dataset.table('ratings');
+
+    // Get an object representing the document
+    // e.g. {'name': 'Marie', 'age': 66}
+    var ratingDocSnap = event.data.data();
+
+    console.log('Got a rating update!  ', ratingDocSnap);
+
+    return table.insert({
+      rating: ratingDocSnap.rating,
+      text: ratingDocSnap.text,
+      timestamp: ratingDocSnap.timestamp,
+      userId: ratingDocSnap.userId,
+      userName: ratingDocSnap.userName
+    });
 });
