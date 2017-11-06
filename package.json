@@ -10,5 +10,8 @@
   "author": "",
   "devDependencies": {
     "prettier": "^1.5.3"
+  },
+  "dependencies": {
+    "firebase": "^4.5.2"
   }
 }
