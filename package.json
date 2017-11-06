@@ -12,6 +12,9 @@
     "prettier": "^1.5.3"
   },
   "dependencies": {
-    "firebase": "^4.5.2"
+    "@google-cloud/bigquery": "^0.6.0",
+    "firebase": "^4.5.2",
+    "firebase-admin": "^4.1.1",
+    "firebase-functions": "^0.7.2"
   }
 }
